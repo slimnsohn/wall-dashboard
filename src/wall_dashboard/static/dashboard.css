@@ -186,23 +186,23 @@ html, body {
   margin-top: clamp(2px, 0.4vh, 6px);
   font-variant-numeric: tabular-nums;
 }
-.hour .p {
-  font-size: clamp(11px, 2vh, 22px);
-  color: #6f9fd0;
-  margin-top: clamp(2px, 0.4vh, 6px);
-  font-variant-numeric: tabular-nums;
+/* Per-hour warning icon + value (rain ☂ or UV ☀; mutually exclusive). */
+.hour .wicon {
+  font-size: clamp(15px, 2.6vh, 24px);
+  margin-top: clamp(3px, 0.6vh, 7px);
+  line-height: 1;
 }
-.hour .uv {
-  font-size: clamp(10px, 1.8vh, 20px);
-  margin-top: clamp(2px, 0.4vh, 5px);
+.hour .wval {
+  font-size: clamp(11px, 1.9vh, 20px);
+  margin-top: clamp(1px, 0.2vh, 3px);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.3px;
 }
-.hour .uv.low { color: #7a9a7a; }        /* sage green */
-.hour .uv.moderate { color: #e3c45a; }   /* yellow */
-.hour .uv.high { color: #ff9966; }       /* orange */
-.hour .uv.very-high { color: #ef7a7a; }  /* red */
-.hour .uv.extreme { color: #c98aef; }    /* purple */
+.hour .wicon.precip, .hour .wval.precip { color: #6f9fd0; }   /* rain blue */
+.hour .wicon.moderate, .hour .wval.moderate { color: #e3c45a; }
+.hour .wicon.high, .hour .wval.high { color: #ff9966; }
+.hour .wicon.very-high, .hour .wval.very-high { color: #ef7a7a; }
+.hour .wicon.extreme, .hour .wval.extreme { color: #c98aef; }
 
 /* ── Trains ──────────────────────────────────────── */
 

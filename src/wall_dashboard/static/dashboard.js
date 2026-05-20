@@ -57,6 +57,21 @@ function renderWeather(w) {
   }
 }
 
+// Per-hour warning: rain wins over UV (rain matters more for "what to bring").
+// Both have visibility thresholds so the layout stays clean during mild hours.
+const PRECIP_THRESHOLD_PCT = 20;
+const UV_THRESHOLD = 6;  // EPA "High" and above
+
+function hourlyWarning(h, uvEntry) {
+  if (h.precip != null && h.precip >= PRECIP_THRESHOLD_PCT) {
+    return { kind: "precip", icon: "☂", value: `${Math.round(h.precip)}%` };
+  }
+  if (uvEntry && uvEntry.value >= UV_THRESHOLD) {
+    return { kind: "uv", icon: "☀", value: `UV ${uvEntry.value}`, level: uvEntry.level };
+  }
+  return null;
+}
+
 function renderHourly(w, uvData) {
   try {
     const host = document.getElementById("hourly");
@@ -69,7 +84,7 @@ function renderHourly(w, uvData) {
     setHidden("hourly-unavailable", true);
     const hours = (w.hours || []).slice(0, MAX_HOURS);
 
-    // Build hourKey -> UV record lookup so per-hour cells can show UV
+    // Build hourKey -> UV record lookup
     const uvByKey = {};
     if (uvData && uvData.available && Array.isArray(uvData.hours)) {
       uvData.hours.forEach(u => { uvByKey[u.hourKey] = u; });
@@ -87,19 +102,20 @@ function renderHourly(w, uvData) {
       temp.textContent = h.temp != null ? `${Math.round(h.temp)}°` : "--";
       cell.appendChild(label);
       cell.appendChild(temp);
-      // Precip (always shown so the layout is consistent across rows)
-      const precip = document.createElement("div");
-      precip.className = "p";
-      precip.textContent = h.precip != null ? `${Math.round(h.precip)}%` : "—";
-      cell.appendChild(precip);
-      // Per-hour UV (color tier matches the badge palette)
-      const u = uvByKey[h.hourKey];
-      if (u) {
-        const uv = document.createElement("div");
-        uv.className = "uv " + (u.level || "low");
-        uv.textContent = `UV ${u.value}`;
-        cell.appendChild(uv);
+
+      const warn = hourlyWarning(h, uvByKey[h.hourKey]);
+      if (warn) {
+        const colorClass = warn.kind === "precip" ? "precip" : (warn.level || "");
+        const icon = document.createElement("div");
+        icon.className = `wicon ${colorClass}`;
+        icon.textContent = warn.icon;
+        const value = document.createElement("div");
+        value.className = `wval ${colorClass}`;
+        value.textContent = warn.value;
+        cell.appendChild(icon);
+        cell.appendChild(value);
       }
+
       host.appendChild(cell);
     });
   } catch (e) {
