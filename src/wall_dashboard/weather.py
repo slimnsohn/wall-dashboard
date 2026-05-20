@@ -99,6 +99,8 @@ def _extract_hour(period: dict) -> dict:
     humidity_obj = period.get("relativeHumidity") or {}
     humidity = humidity_obj.get("value")
     wind_mph = _parse_wind(period.get("windSpeed", ""))
+    precip_obj = period.get("probabilityOfPrecipitation") or {}
+    precip = precip_obj.get("value")
     return {
         "hourKey": f"{dt.year}-{dt.month:02d}-{dt.day:02d}-{dt.hour}",
         "hour": dt.hour,
@@ -106,6 +108,7 @@ def _extract_hour(period: dict) -> dict:
         "humidity": humidity,
         "wind_mph": wind_mph,
         "feels_like": feels_like(temp, humidity, wind_mph),
+        "precip": precip,
         "short": period.get("shortForecast"),
     }
 

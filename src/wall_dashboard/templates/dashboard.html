@@ -7,40 +7,40 @@
   <link rel="stylesheet" href="/static/dashboard.css">
 </head>
 <body data-now-iso="{{ now_iso }}">
-  <main class="dashboard">
-    <header class="topbar">
-      <div class="location">NORTHBROOK</div>
-      <div class="clock" id="clock">--:--</div>
+  <main class="root">
+    <header class="header">
+      <div class="left">
+        <div class="location-line">
+          <span class="location">NORTHBROOK</span>
+          <span class="now-temp" id="now-temp">--°</span>
+        </div>
+        <div class="weather-meta">
+          <span class="short" id="weather-short"></span>
+          <span class="feels" id="weather-feels"></span>
+        </div>
+        <div class="aqi-line" id="aqi-line">
+          <span id="aqi-text">AQI --</span>
+        </div>
+      </div>
+      <div class="right">
+        <div class="date" id="date">—</div>
+        <div class="time" id="time">--:--</div>
+      </div>
     </header>
 
-    <section class="panel weather" id="panel-weather">
-      <h2 class="panel-title">Weather</h2>
-      <div class="weather-current">
-        <span class="temp" id="weather-temp">--</span>
-        <span class="feels" id="weather-feels"></span>
-        <span class="short" id="weather-short"></span>
+    <section class="section hourly-section" id="section-hourly">
+      <div class="section-label">HOURLY</div>
+      <div class="hourly" id="hourly"></div>
+      <div class="section-unavailable" id="hourly-unavailable" hidden>weather unavailable</div>
+    </section>
+
+    <section class="section trains-section" id="section-trains">
+      <div class="section-label">
+        <span>NORTHBROOK TRAINS</span>
+        <span class="updated" id="updated">—</span>
       </div>
-      <div class="weather-hours" id="weather-hours"></div>
-      <div class="unavailable" hidden></div>
-    </section>
-
-    <section class="panel aqi" id="panel-aqi">
-      <h2 class="panel-title">Air Quality</h2>
-      <div class="aqi-value" id="aqi-value">--</div>
-      <div class="aqi-category" id="aqi-category"></div>
-      <div class="unavailable" hidden></div>
-    </section>
-
-    <section class="panel metra" id="panel-metra">
-      <h2 class="panel-title">Metra (MD-N)</h2>
-      <ul class="train-list" id="metra-list"></ul>
-      <div class="unavailable" hidden></div>
-    </section>
-
-    <section class="panel amtrak" id="panel-amtrak">
-      <h2 class="panel-title">Amtrak</h2>
-      <ul class="train-list" id="amtrak-list"></ul>
-      <div class="unavailable" hidden></div>
+      <ul class="train-list" id="trains"></ul>
+      <div class="section-unavailable" id="trains-unavailable" hidden>trains unavailable</div>
     </section>
   </main>
   <script src="/static/dashboard.js" defer></script>
