@@ -1,16 +1,19 @@
 # Multi-stage build keeps the final image small.
-ARG BUILD_FROM=ghcr.io/home-assistant/aarch64-base-python:3.11-alpine-3.19
-FROM ${BUILD_FROM} AS builder
+# Using the official multi-arch Python base (Docker Hub) so we don't depend
+# on HA's base-image tag rotation. Works on linux/amd64, linux/arm64, linux/arm/v7.
+FROM python:3.11-slim-bookworm AS builder
 
 WORKDIR /build
 COPY pyproject.toml ./
 COPY src ./src
 RUN pip install --no-cache-dir --user .
 
-FROM ${BUILD_FROM}
+FROM python:3.11-slim-bookworm
 
-# Non-root user
-RUN addgroup -S app && adduser -S app -G app
+# Non-root user (Debian/Ubuntu syntax — different from Alpine's addgroup -S)
+RUN groupadd --system app \
+ && useradd --system --gid app --home-dir /home/app --create-home app
+
 COPY --from=builder /root/.local /home/app/.local
 COPY --from=builder /build/src /app/src
 ENV PATH=/home/app/.local/bin:$PATH \
