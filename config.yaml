@@ -1,8 +1,8 @@
 name: Wall Dashboard
-version: "0.1.0"
+version: "0.1.2"
 slug: wall_dashboard
 description: TV dashboard for Northbrook trains, weather, and AQI
-url: https://github.com/help-sohn/wall-dashboard
+url: https://github.com/slimnsohn/wall-dashboard
 arch:
   - aarch64
 startup: application
@@ -15,5 +15,23 @@ ports_description:
 map:
   - share:rw
   - addon_config:rw
-options: {}
-schema: {}
+options:
+  METRA_TOKEN: ""
+  NORTHBROOK_STOP_ID: "NBROOK"
+  CUS_STOP_ID: "CUS"
+  NWS_LAT: 42.1275
+  NWS_LON: -87.8290
+  NWS_USER_AGENT: ""
+  NWS_FORECAST_HOURLY_URL: ""
+  WEATHER_FLIP_HOUR: 17
+  WEATHER_END_HOUR: 21
+schema:
+  METRA_TOKEN: password
+  NORTHBROOK_STOP_ID: str
+  CUS_STOP_ID: str
+  NWS_LAT: float
+  NWS_LON: float
+  NWS_USER_AGENT: str
+  NWS_FORECAST_HOURLY_URL: str?
+  WEATHER_FLIP_HOUR: int(0,23)
+  WEATHER_END_HOUR: int(0,23)

@@ -1,6 +1,34 @@
 from __future__ import annotations
 
+import json
+import os
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _load_addon_options() -> None:
+    """If running as a Home Assistant add-on, hydrate env vars from /data/options.json.
+
+    HA Supervisor writes the user's Configuration-tab values to this file inside
+    the container. We mirror them into os.environ so pydantic-settings picks them up
+    via its normal env-var loading. setdefault() means a real env var (or .env on
+    disk during local dev) wins over an options.json value of the same name.
+    """
+    p = Path("/data/options.json")
+    if not p.exists():
+        return
+    try:
+        opts = json.loads(p.read_text())
+    except Exception:
+        return
+    for k, v in opts.items():
+        if v is None or v == "":
+            continue
+        os.environ.setdefault(k, str(v))
+
+
+_load_addon_options()
 
 
 class Settings(BaseSettings):
