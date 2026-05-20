@@ -260,11 +260,14 @@ async function refresh() {
   }
 }
 
-/* ── OLED anti-burn-in: pixel nudge every hour ─────────── */
+/* ── OLED anti-burn-in: pixel nudge every 5 minutes ────── */
+
+const NUDGE_MS = 300_000;       // 5 minutes
+const NUDGE_RANGE = 8;          // pixels: -8..+8 in each axis
 
 function pixelNudge() {
-  const dx = Math.floor(Math.random() * 7) - 3;  // -3..3
-  const dy = Math.floor(Math.random() * 7) - 3;
+  const dx = Math.floor(Math.random() * (NUDGE_RANGE * 2 + 1)) - NUDGE_RANGE;
+  const dy = Math.floor(Math.random() * (NUDGE_RANGE * 2 + 1)) - NUDGE_RANGE;
   document.body.style.transform = `translate(${dx}px, ${dy}px)`;
 }
 
@@ -272,4 +275,5 @@ tickClock();
 setInterval(tickClock, 1_000);
 refresh();
 setInterval(refresh, REFRESH_MS);
-setInterval(pixelNudge, 3_600_000);  // every hour
+pixelNudge();
+setInterval(pixelNudge, NUDGE_MS);
