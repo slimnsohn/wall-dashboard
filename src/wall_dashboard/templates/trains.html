@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trains - Northbrook</title>
+  <link rel="stylesheet" href="/static/trains.css">
+</head>
+<body data-now-iso="{{ now_iso }}">
+  <main class="trains">
+    <header>
+      <div class="location">NORTHBROOK</div>
+      <div class="updated" id="updated">-</div>
+    </header>
+    <ul class="train-list" id="train-list"></ul>
+    <p class="empty" id="empty" hidden>No upcoming trains</p>
+  </main>
+  <script src="/static/trains.js" defer></script>
+</body>
+</html>

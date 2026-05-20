@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wall Dashboard</title>
+  <link rel="stylesheet" href="/static/dashboard.css">
+</head>
+<body data-now-iso="{{ now_iso }}">
+  <main class="dashboard">
+    <header class="topbar">
+      <div class="location">NORTHBROOK</div>
+      <div class="clock" id="clock">--:--</div>
+    </header>
+
+    <section class="panel weather" id="panel-weather">
+      <h2 class="panel-title">Weather</h2>
+      <div class="weather-current">
+        <span class="temp" id="weather-temp">--</span>
+        <span class="feels" id="weather-feels"></span>
+        <span class="short" id="weather-short"></span>
+      </div>
+      <div class="weather-hours" id="weather-hours"></div>
+      <div class="unavailable" hidden></div>
+    </section>
+
+    <section class="panel aqi" id="panel-aqi">
+      <h2 class="panel-title">Air Quality</h2>
+      <div class="aqi-value" id="aqi-value">--</div>
+      <div class="aqi-category" id="aqi-category"></div>
+      <div class="unavailable" hidden></div>
+    </section>
+
+    <section class="panel metra" id="panel-metra">
+      <h2 class="panel-title">Metra (MD-N)</h2>
+      <ul class="train-list" id="metra-list"></ul>
+      <div class="unavailable" hidden></div>
+    </section>
+
+    <section class="panel amtrak" id="panel-amtrak">
+      <h2 class="panel-title">Amtrak</h2>
+      <ul class="train-list" id="amtrak-list"></ul>
+      <div class="unavailable" hidden></div>
+    </section>
+  </main>
+  <script src="/static/dashboard.js" defer></script>
+</body>
+</html>

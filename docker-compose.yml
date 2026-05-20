@@ -1,0 +1,12 @@
+services:
+  wall-dashboard:
+    build: .
+    container_name: wall-dashboard
+    ports: ["8765:8765"]
+    volumes: ["./data:/data"]
+    env_file: .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8765/healthz"]
+      interval: 30s
+      retries: 3

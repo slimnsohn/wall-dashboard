@@ -1,0 +1,50 @@
+:root {
+  --bg: #0a0a0a;
+  --fg: #e0e0e0;
+  --fg-dim: #9a9a9a;
+  --fg-faint: #6a6a6a;
+  --accent: #7ab8ff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.trains { max-width: 520px; margin: 0 auto; padding: 24px 18px; }
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #222;
+  margin-bottom: 12px;
+}
+
+.location {
+  letter-spacing: 0.18em;
+  color: var(--fg-dim);
+  font-size: 13px;
+}
+
+.updated { color: var(--fg-faint); font-size: 12px; }
+
+.train-list { list-style: none; }
+.train-list li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: baseline;
+  padding: 14px 4px;
+  border-bottom: 1px solid #1d1d1d;
+}
+.train-list li:last-child { border-bottom: none; }
+.t-type { color: var(--accent); font-size: 14px; letter-spacing: 0.05em; }
+.t-time { font-size: 22px; font-variant-numeric: tabular-nums; }
+.t-countdown { color: var(--fg-dim); font-variant-numeric: tabular-nums; }
+.empty { color: var(--fg-faint); text-align: center; padding: 40px 0; }

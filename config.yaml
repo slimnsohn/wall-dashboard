@@ -1,0 +1,19 @@
+name: Wall Dashboard
+version: "0.1.0"
+slug: wall_dashboard
+description: TV dashboard for Northbrook trains, weather, and AQI
+url: https://github.com/help-sohn/wall-dashboard
+arch:
+  - aarch64
+startup: application
+boot: auto
+init: false
+ports:
+  8765/tcp: 8765
+ports_description:
+  8765/tcp: Web UI and JSON API
+map:
+  - share:rw
+  - addon_config:rw
+options: {}
+schema: {}
