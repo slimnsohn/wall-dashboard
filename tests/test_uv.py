@@ -103,3 +103,28 @@ async def test_get_uv_handles_uv_zero_at_night(env):
     assert r["value"] == 0
     assert r["category"] == "Low"
     assert r["alert"] is False
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_get_uv_returns_hourly(env):
+    respx.get("https://air-quality-api.open-meteo.com/v1/air-quality").mock(
+        return_value=httpx.Response(200, json={
+            "current": {"uv_index": 2.4},
+            "hourly": {
+                "time": ["2026-05-20T06:00", "2026-05-20T12:00", "2026-05-20T18:00"],
+                "uv_index": [1.2, 6.7, 2.1],
+            },
+        })
+    )
+    r = await get_uv()
+    assert r["available"] is True
+    assert len(r["hours"]) == 3
+    assert r["hours"][0]["hourKey"] == "2026-05-20-6"
+    assert r["hours"][0]["value"] == 1
+    assert r["hours"][0]["level"] == "low"
+    # 6.7 rounds to 7 -> High tier
+    assert r["hours"][1]["value"] == 7
+    assert r["hours"][1]["level"] == "high"
+    assert r["hours"][2]["value"] == 2
+    assert r["hours"][2]["level"] == "low"

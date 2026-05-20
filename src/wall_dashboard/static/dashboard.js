@@ -57,7 +57,7 @@ function renderWeather(w) {
   }
 }
 
-function renderHourly(w) {
+function renderHourly(w, uvData) {
   try {
     const host = document.getElementById("hourly");
     if (!host) return;
@@ -68,6 +68,13 @@ function renderHourly(w) {
     }
     setHidden("hourly-unavailable", true);
     const hours = (w.hours || []).slice(0, MAX_HOURS);
+
+    // Build hourKey -> UV record lookup so per-hour cells can show UV
+    const uvByKey = {};
+    if (uvData && uvData.available && Array.isArray(uvData.hours)) {
+      uvData.hours.forEach(u => { uvByKey[u.hourKey] = u; });
+    }
+
     while (host.firstChild) host.removeChild(host.firstChild);
     hours.forEach(h => {
       const cell = document.createElement("div");
@@ -80,12 +87,18 @@ function renderHourly(w) {
       temp.textContent = h.temp != null ? `${Math.round(h.temp)}°` : "--";
       cell.appendChild(label);
       cell.appendChild(temp);
-      // Only show precip when there's actual chance of rain (skip 0% and null)
-      if (h.precip != null && h.precip > 0) {
-        const precip = document.createElement("div");
-        precip.className = "p";
-        precip.textContent = `${Math.round(h.precip)}%`;
-        cell.appendChild(precip);
+      // Precip (always shown so the layout is consistent across rows)
+      const precip = document.createElement("div");
+      precip.className = "p";
+      precip.textContent = h.precip != null ? `${Math.round(h.precip)}%` : "—";
+      cell.appendChild(precip);
+      // Per-hour UV (color tier matches the badge palette)
+      const u = uvByKey[h.hourKey];
+      if (u) {
+        const uv = document.createElement("div");
+        uv.className = "uv " + (u.level || "low");
+        uv.textContent = `UV ${u.value}`;
+        cell.appendChild(uv);
       }
       host.appendChild(cell);
     });
@@ -200,7 +213,7 @@ async function refresh() {
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const d = await r.json();
     renderWeather(d.weather);
-    renderHourly(d.weather);
+    renderHourly(d.weather, d.uv);
     renderAqi(d.aqi);
     renderUv(d.uv);
     renderTrains(d.metra, d.amtrak, d.now_iso);

@@ -192,6 +192,17 @@ html, body {
   margin-top: clamp(2px, 0.4vh, 6px);
   font-variant-numeric: tabular-nums;
 }
+.hour .uv {
+  font-size: clamp(10px, 1.8vh, 20px);
+  margin-top: clamp(2px, 0.4vh, 5px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3px;
+}
+.hour .uv.low { color: #7a9a7a; }        /* sage green */
+.hour .uv.moderate { color: #e3c45a; }   /* yellow */
+.hour .uv.high { color: #ff9966; }       /* orange */
+.hour .uv.very-high { color: #ef7a7a; }  /* red */
+.hour .uv.extreme { color: #c98aef; }    /* purple */
 
 /* ── Trains ──────────────────────────────────────── */
 

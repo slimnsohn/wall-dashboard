@@ -1,7 +1,8 @@
-"""Open-Meteo current UV index."""
+"""Open-Meteo current + hourly UV index."""
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 
 from .client import get_cache, get_http_client
 from .config import get_settings
@@ -24,8 +25,32 @@ def uv_info(value: float) -> dict:
     return {"category": "Extreme", "level": "extreme", "alert": True}
 
 
+def _parse_hourly_uv(payload: dict) -> list[dict]:
+    """Open-Meteo hourly arrays -> list of per-hour UV records with hourKey
+    matching weather.py's format so the frontend can merge them by key."""
+    hourly = payload.get("hourly") or {}
+    times = hourly.get("time") or []
+    values = hourly.get("uv_index") or []
+    out: list[dict] = []
+    for t, v in zip(times, values):
+        if v is None:
+            continue
+        try:
+            dt = datetime.fromisoformat(t)
+        except ValueError:
+            continue
+        info = uv_info(v)
+        out.append({
+            "hourKey": f"{dt.year}-{dt.month:02d}-{dt.day:02d}-{dt.hour}",
+            "hour": dt.hour,
+            "value": round(v),
+            **info,
+        })
+    return out
+
+
 async def get_uv() -> dict:
-    """Returns: {available, error, value, category, level, alert}."""
+    """Returns: {available, error, value, category, level, alert, hours: [...]}."""
     s = get_settings()
     try:
         async def fetch():
@@ -36,6 +61,8 @@ async def get_uv() -> dict:
                     "latitude": s.nws_lat,
                     "longitude": s.nws_lon,
                     "current": "uv_index",
+                    "hourly": "uv_index",
+                    "forecast_days": 3,
                     "timezone": "America/Chicago",
                 },
             )
@@ -43,12 +70,23 @@ async def get_uv() -> dict:
             return r.json()
 
         data = await get_cache().get_or_fetch("uv", 1800, fetch)
+        hours = _parse_hourly_uv(data)
         current = data.get("current") or {}
         val = current.get("uv_index")
         if val is None:
-            return {"available": False, "error": "UV response missing uv_index"}
+            return {
+                "available": False,
+                "error": "UV response missing uv_index",
+                "hours": hours,
+            }
         info = uv_info(val)
-        return {"available": True, "error": None, "value": round(val, 1), **info}
+        return {
+            "available": True,
+            "error": None,
+            "value": round(val, 1),
+            "hours": hours,
+            **info,
+        }
     except Exception as exc:
         logger.exception("uv.get_uv failed")
-        return {"available": False, "error": str(exc)}
+        return {"available": False, "error": str(exc), "hours": []}
