@@ -117,3 +117,5 @@ html, body {
   letter-spacing: 0.1em; text-transform: uppercase;
 }
 .unavailable::after { content: "data unavailable"; }
+.unavailable[hidden] { display: none; }
+
