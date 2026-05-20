@@ -78,12 +78,15 @@ function renderHourly(w) {
       const temp = document.createElement("div");
       temp.className = "t";
       temp.textContent = h.temp != null ? `${Math.round(h.temp)}°` : "--";
-      const precip = document.createElement("div");
-      precip.className = "p";
-      precip.textContent = h.precip != null ? `${Math.round(h.precip)}%` : "—";
       cell.appendChild(label);
       cell.appendChild(temp);
-      cell.appendChild(precip);
+      // Only show precip when there's actual chance of rain (skip 0% and null)
+      if (h.precip != null && h.precip > 0) {
+        const precip = document.createElement("div");
+        precip.className = "p";
+        precip.textContent = `${Math.round(h.precip)}%`;
+        cell.appendChild(precip);
+      }
       host.appendChild(cell);
     });
   } catch (e) {

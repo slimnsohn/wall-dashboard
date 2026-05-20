@@ -130,7 +130,7 @@ html, body {
 .section-label .updated {
   font-size: clamp(9px, 1.4vh, 16px);
   letter-spacing: 1.5px;
-  color: var(--fg-fainter);
+  color: #ff7070;
   text-transform: none;
 }
 
