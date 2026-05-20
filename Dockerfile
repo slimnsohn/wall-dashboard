@@ -10,18 +10,15 @@ RUN pip install --no-cache-dir --user .
 
 FROM python:3.11-slim-bookworm
 
-# Non-root user (Debian/Ubuntu syntax — different from Alpine's addgroup -S)
-RUN groupadd --system app \
- && useradd --system --gid app --home-dir /home/app --create-home app
-
-COPY --from=builder /root/.local /home/app/.local
+# Runs as root inside the container. HA Supervisor bind-mounts /data from the host
+# and owns that mount as root; trying to drop privileges to a non-root user breaks
+# writes to /data (the in-image chown is overridden by the host mount).
+COPY --from=builder /root/.local /root/.local
 COPY --from=builder /build/src /app/src
-ENV PATH=/home/app/.local/bin:$PATH \
+ENV PATH=/root/.local/bin:$PATH \
     PYTHONPATH=/app/src \
     DATA_DIR=/data
 
-RUN mkdir -p /data && chown app:app /data
-USER app
 WORKDIR /app
 
 EXPOSE 8765
