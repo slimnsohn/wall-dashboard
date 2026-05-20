@@ -17,15 +17,27 @@ def _load_addon_options() -> None:
     """
     p = Path("/data/options.json")
     if not p.exists():
+        print("[addon-config] /data/options.json does not exist", flush=True)
         return
     try:
-        opts = json.loads(p.read_text())
-    except Exception:
+        raw = p.read_text()
+        opts = json.loads(raw)
+    except Exception as exc:
+        print(f"[addon-config] failed to parse options.json: {exc}", flush=True)
         return
+    # Log keys + value lengths (don't leak the values themselves)
+    summary = {k: (f"len={len(v)}" if isinstance(v, str) else type(v).__name__)
+               for k, v in opts.items()}
+    print(f"[addon-config] options.json keys: {summary}", flush=True)
+    loaded, skipped = [], []
     for k, v in opts.items():
         if v is None or v == "":
+            skipped.append(k)
             continue
         os.environ.setdefault(k, str(v))
+        loaded.append(k)
+    print(f"[addon-config] env set: {sorted(loaded)}", flush=True)
+    print(f"[addon-config] skipped (empty): {sorted(skipped)}", flush=True)
 
 
 _load_addon_options()
