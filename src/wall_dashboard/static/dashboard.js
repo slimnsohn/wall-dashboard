@@ -73,7 +73,7 @@ function renderHourly(w) {
       const cell = document.createElement("div");
       cell.className = "hour";
       const label = document.createElement("div");
-      label.className = "h";
+      label.className = "h " + (h.hour < 12 ? "am" : "pm");
       label.textContent = formatHourLabel(h.hour);
       const temp = document.createElement("div");
       temp.className = "t";
