@@ -77,31 +77,52 @@ html, body {
 .weather-meta .short { font-size: clamp(14px, 2.6vh, 28px); color: #c0c0c0; }
 .weather-meta .feels { font-size: clamp(12px, 2.2vh, 24px); color: var(--fg-dim); }
 
-.aqi-line {
+.health-line {
   margin-top: clamp(6px, 1.4vh, 14px);
+  display: flex;
+  gap: clamp(8px, 1.4vw, 16px);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.badge {
   font-size: clamp(13px, 2.3vh, 24px);
   font-variant-numeric: tabular-nums;
-  align-self: flex-start;
+  padding: 0;
 }
-.aqi-line.good { color: var(--good); }
-.aqi-line.alert {
-  display: inline-block;
+
+.badge.good, .badge.low { color: var(--good); }
+
+.badge.alert {
   padding: clamp(3px, 0.6vh, 6px) clamp(8px, 1.4vw, 16px);
   border-radius: 8px;
   font-weight: 600;
   letter-spacing: 0.5px;
+  border: 1px solid;
 }
-.aqi-line.moderate {
+
+/* Shared color tiers used by both AQI and UV (level class drives the color) */
+.badge.moderate {
   color: var(--moderate);
   background: var(--moderate-bg);
-  border: 1px solid var(--moderate-border);
+  border-color: var(--moderate-border);
 }
-.aqi-line.unhealthy,
-.aqi-line.very-unhealthy,
-.aqi-line.hazardous {
+.badge.unhealthy,
+.badge.very-unhealthy,
+.badge.hazardous {
   color: var(--unhealthy);
   background: var(--unhealthy-bg);
-  border: 1px solid var(--unhealthy-border);
+  border-color: var(--unhealthy-border);
+}
+.badge.high {
+  color: #ff9966;            /* orange — UV High */
+  background: #1a1108;
+  border-color: #6b4424;
+}
+.badge.extreme {
+  color: #c98aef;            /* purple — UV Extreme */
+  background: #14091a;
+  border-color: #4a2864;
 }
 
 .right { text-align: right; font-variant-numeric: tabular-nums; }

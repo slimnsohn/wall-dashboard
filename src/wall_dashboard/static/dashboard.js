@@ -94,26 +94,33 @@ function renderHourly(w) {
   }
 }
 
-function renderAqi(a) {
-  try {
-    const line = document.getElementById("aqi-line");
-    const text = document.getElementById("aqi-text");
-    if (!line || !text) return;
-    if (!a || !a.available) {
-      text.textContent = "AQI unavailable";
-      line.className = "aqi-line";
-      return;
-    }
-    if (a.alert) {
-      text.textContent = `⚠ AQI ${a.value} · ${a.category || ""}`.trim();
-      line.className = "aqi-line alert " + (a.level || "");
-    } else {
-      text.textContent = `AQI ${a.value} · ${a.category || "Good"}`;
-      line.className = "aqi-line good";
-    }
-  } catch (e) {
-    console.error("renderAqi", e);
+function renderBadge(elId, kind, data) {
+  // kind: "AQI" or "UV". data: {available, value, category, level, alert}
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (!data || !data.available) {
+    el.textContent = `${kind} —`;
+    el.className = `badge ${elId}`;
+    return;
   }
+  if (data.alert) {
+    el.textContent = `⚠ ${kind} ${data.value} · ${data.category || ""}`.trim();
+    el.className = `badge ${elId} alert ${data.level || ""}`;
+  } else {
+    const cat = data.category || (kind === "AQI" ? "Good" : "Low");
+    el.textContent = `${kind} ${data.value} · ${cat}`;
+    el.className = `badge ${elId} ${data.level || "good"}`;
+  }
+}
+
+function renderAqi(a) {
+  try { renderBadge("aqi-badge", "AQI", a); }
+  catch (e) { console.error("renderAqi", e); }
+}
+
+function renderUv(u) {
+  try { renderBadge("uv-badge", "UV", u); }
+  catch (e) { console.error("renderUv", e); }
 }
 
 function mergeTrains(metra, amtrak, now) {
@@ -195,6 +202,7 @@ async function refresh() {
     renderWeather(d.weather);
     renderHourly(d.weather);
     renderAqi(d.aqi);
+    renderUv(d.uv);
     renderTrains(d.metra, d.amtrak, d.now_iso);
     renderUpdated(d.now_iso);
   } catch (e) {
