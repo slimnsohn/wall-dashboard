@@ -72,6 +72,14 @@ function hourlyWarning(h, uvEntry) {
   return null;
 }
 
+// "YYYY-MM-DD-H" (H is not zero-padded) -> Date at the start of that hour.
+function parseHourKey(key) {
+  const parts = (key || "").split("-");
+  if (parts.length !== 4) return null;
+  return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1,
+                  parseInt(parts[2]), parseInt(parts[3]));
+}
+
 function renderHourly(w, uvData) {
   try {
     const host = document.getElementById("hourly");
@@ -82,7 +90,19 @@ function renderHourly(w, uvData) {
       return;
     }
     setHidden("hourly-unavailable", true);
-    const hours = (w.hours || []).slice(0, MAX_HOURS);
+    // Drop hours whose hour-start has already passed — the current hour stays
+    // visible until the next clock hour begins, then it rolls off and a new
+    // hour appears at the tail. The 30s refresh loop picks up the change.
+    const now = new Date();
+    const currentHourStart = new Date(
+      now.getFullYear(), now.getMonth(), now.getDate(), now.getHours()
+    ).getTime();
+    const hours = (w.hours || [])
+      .filter(h => {
+        const d = parseHourKey(h.hourKey);
+        return d && d.getTime() >= currentHourStart;
+      })
+      .slice(0, MAX_HOURS);
 
     // Build hourKey -> UV record lookup
     const uvByKey = {};
