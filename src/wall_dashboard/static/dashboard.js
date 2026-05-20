@@ -60,7 +60,7 @@ function renderWeather(w) {
 // Per-hour warning: rain wins over UV (rain matters more for "what to bring").
 // Both have visibility thresholds so the layout stays clean during mild hours.
 const PRECIP_THRESHOLD_PCT = 20;
-const UV_THRESHOLD = 6;  // EPA "High" and above
+const UV_THRESHOLD = 4;  // EPA upper "Moderate" (4-5) and above
 
 function hourlyWarning(h, uvEntry) {
   if (h.precip != null && h.precip >= PRECIP_THRESHOLD_PCT) {
