@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
 
 
 def _load_addon_options() -> None:
@@ -14,30 +17,23 @@ def _load_addon_options() -> None:
     the container. We mirror them into os.environ so pydantic-settings picks them up
     via its normal env-var loading. setdefault() means a real env var (or .env on
     disk during local dev) wins over an options.json value of the same name.
+
+    Silent when the file is absent (local dev path). Logs a warning if present but
+    unreadable — the resulting Settings() call would fail loudly with a clearer
+    error than a print here could give.
     """
     p = Path("/data/options.json")
     if not p.exists():
-        print("[addon-config] /data/options.json does not exist", flush=True)
         return
     try:
-        raw = p.read_text()
-        opts = json.loads(raw)
+        opts = json.loads(p.read_text())
     except Exception as exc:
-        print(f"[addon-config] failed to parse options.json: {exc}", flush=True)
+        logger.warning("addon options.json exists but is not valid JSON: %s", exc)
         return
-    # Log keys + value lengths (don't leak the values themselves)
-    summary = {k: (f"len={len(v)}" if isinstance(v, str) else type(v).__name__)
-               for k, v in opts.items()}
-    print(f"[addon-config] options.json keys: {summary}", flush=True)
-    loaded, skipped = [], []
     for k, v in opts.items():
         if v is None or v == "":
-            skipped.append(k)
             continue
         os.environ.setdefault(k, str(v))
-        loaded.append(k)
-    print(f"[addon-config] env set: {sorted(loaded)}", flush=True)
-    print(f"[addon-config] skipped (empty): {sorted(skipped)}", flush=True)
 
 
 _load_addon_options()

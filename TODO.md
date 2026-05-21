@@ -1,17 +1,26 @@
 # Wall Dashboard — TODO
 
-## Now
-- Install Advanced SSH & Web Terminal add-on on the Green and `git clone` into `/addons/wall-dashboard/`.
-- Fill `.env` on the Green (Metra token, stop_ids, NWS User-Agent).
-- Install add-on from HA UI ("Local add-ons"), start it.
-- Point Fully Kiosk Browser on Fire Stick at `http://<green-ip>:8765/`.
+## Deployed and running
+- Python service deployed as HA add-on on the Green at `http://192.168.4.65:8765/`.
+- Fire Stick on HDMI 3 runs Fully Kiosk Browser auto-launched on boot.
+- HA automations: TV on at 07:00 + switch to HDMI 3, off at 21:00.
+- All four data sources live: Metra, Amtrak, NWS weather, Open-Meteo AQI + UV.
 
-## Done
-- Python rewrite of the prior Google Apps Script dashboard.
-- All four data sources ported and tested.
-- iOS Scriptable widget retargeted to LAN endpoint.
+## Maybe-do later
+- README "moving house" section: list every place the IP/subnet is hardcoded
+  (Fire Stick start URL, `configuration.yaml` WoL host + broadcast, LG webOS
+  pairing IP). Useful if the network changes.
+- Smart HDMI handling: auto-return to HDMI 3 when Fire Cube goes idle during
+  display hours. Requires HA Fire TV integration + idle-state detection.
+- Switch Fire Stick start URL from raw IP to `homeassistant.local:8765`.
+  Deferred because Fire OS mDNS is unreliable and DHCP reservation works.
+- Empty-state polish on trains panel: late nights with no upcoming trains
+  show an empty list under the header. Could add a "no upcoming trains" line.
+- Add HA REST sensors for delay > N min push notifications if useful.
+- Add Nabu Casa / Cloudflare Tunnel only if the iOS widget needs cellular reach.
 
-## Later (post-deploy)
-- Verify rendering on TV; tweak typography if needed.
-- Add HA REST sensors for delay > N min push notifications (optional).
-- Add Nabu Casa / Cloudflare Tunnel if iOS widget needs cellular reach.
+## Won't do
+- Re-enable Kiosk Mode in Fully Kiosk (locked the Fire Stick out once).
+- Change WoL broadcast off `255.255.255.255` (won't work on the /22 subnet).
+- Drop the WoL switch in favor of LG's `media_player.turn_on` (LG's is flaky).
+- Disable Quick Start+ on the TV (breaks WoL).
