@@ -79,6 +79,8 @@ def build_app() -> FastAPI:
             "weather": w,
             "aqi": a,
             "uv": u,
+            "weather_flip_hour": s.weather_flip_hour,
+            "weather_end_hour": s.weather_end_hour,
         }
 
     @app.get("/api/trains")

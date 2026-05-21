@@ -80,7 +80,7 @@ function parseHourKey(key) {
                   parseInt(parts[2]), parseInt(parts[3]));
 }
 
-function renderHourly(w, uvData) {
+function renderHourly(w, uvData, flipHour, endHour) {
   try {
     const host = document.getElementById("hourly");
     if (!host) return;
@@ -90,17 +90,31 @@ function renderHourly(w, uvData) {
       return;
     }
     setHidden("hourly-unavailable", true);
-    // Drop hours whose hour-start has already passed — the current hour stays
-    // visible until the next clock hour begins, then it rolls off and a new
-    // hour appears at the tail. The 30s refresh loop picks up the change.
+    // Two display modes:
+    //   - Before flipHour: show remaining hours of today up to endHour
+    //   - At/after flipHour: show tomorrow 7am through endHour (label flips to TOMORROW)
     const now = new Date();
-    const currentHourStart = new Date(
-      now.getFullYear(), now.getMonth(), now.getDate(), now.getHours()
-    ).getTime();
+    const tomorrowMode = now.getHours() >= (flipHour ?? 17);
+    setText("hourly-label", tomorrowMode ? "TOMORROW" : "HOURLY");
+
+    let windowStart, windowEnd;
+    if (tomorrowMode) {
+      windowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 7).getTime();
+      windowEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1,
+                           endHour ?? 21).getTime();
+    } else {
+      windowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
+                             now.getHours()).getTime();
+      windowEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
+                           endHour ?? 21).getTime();
+    }
+
     const hours = (w.hours || [])
       .filter(h => {
         const d = parseHourKey(h.hourKey);
-        return d && d.getTime() >= currentHourStart;
+        if (!d) return false;
+        const t = d.getTime();
+        return t >= windowStart && t <= windowEnd;
       })
       .slice(0, MAX_HOURS);
 
@@ -249,7 +263,7 @@ async function refresh() {
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const d = await r.json();
     renderWeather(d.weather);
-    renderHourly(d.weather, d.uv);
+    renderHourly(d.weather, d.uv, d.weather_flip_hour, d.weather_end_hour);
     renderAqi(d.aqi);
     renderUv(d.uv);
     renderTrains(d.metra, d.amtrak, d.now_iso);
