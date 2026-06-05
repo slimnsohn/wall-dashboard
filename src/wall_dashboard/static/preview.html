@@ -6,6 +6,27 @@
   <title>Wall Dashboard — Preview</title>
   <link rel="stylesheet" href="dashboard.css">
   <script>
+    // Opt-in: preview.html#tomorrow forces "now" to 6pm so dashboard.js
+    // enters TOMORROW view-mode. The clock visibly shows 6:00 PM as a
+    // signal that the override is active.
+    if (location.hash === "#tomorrow") {
+      const __RealDate = Date;
+      const __fake = new __RealDate();
+      __fake.setHours(18, 0, 0, 0);
+      const __offset = __fake.getTime() - __RealDate.now();
+      const __ShiftedDate = function (...args) {
+        return args.length === 0
+          ? new __RealDate(__RealDate.now() + __offset)
+          : new __RealDate(...args);
+      };
+      __ShiftedDate.now = () => __RealDate.now() + __offset;
+      __ShiftedDate.UTC = __RealDate.UTC;
+      __ShiftedDate.parse = __RealDate.parse;
+      __ShiftedDate.prototype = __RealDate.prototype;
+      // eslint-disable-next-line no-global-assign
+      Date = __ShiftedDate;
+    }
+
     // Build a realistic /api/dashboard payload anchored on real "now",
     // so the hourly window in dashboard.js (which uses new Date()) lines up.
     function buildMockData() {
