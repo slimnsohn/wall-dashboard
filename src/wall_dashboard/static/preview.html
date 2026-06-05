@@ -5,6 +5,75 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Wall Dashboard — Preview</title>
   <link rel="stylesheet" href="dashboard.css">
+  <script>
+    // Build a realistic /api/dashboard payload anchored on real "now",
+    // so the hourly window in dashboard.js (which uses new Date()) lines up.
+    function buildMockData() {
+      const now = new Date();
+      const hours = [];
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
+                           now.getHours() + i);
+        const hourKey = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}-${d.getHours()}`;
+        hours.push({
+          hourKey,
+          hour: d.getHours(),
+          temp: 68 + Math.round(8 * Math.sin(i / 4)),
+          precip: (i === 3 || i === 4) ? 30 : 0,
+        });
+      }
+      const uvHours = hours.map((h, i) => ({
+        hourKey: h.hourKey,
+        value: i === 6 ? 7 : 5,
+        level: i === 6 ? "high" : "moderate",
+      }));
+      return {
+        now_iso: now.toISOString(),
+        weather: {
+          available: true,
+          current: { temp: 72, feels_like: 74, short: "Partly Sunny" },
+          hours,
+        },
+        uv: {
+          available: true, value: 5, category: "Moderate", level: "moderate",
+          alert: false, hours: uvHours,
+        },
+        aqi: {
+          available: true, value: 42, category: "Good", level: "good",
+          alert: false,
+        },
+        metra: {
+          available: true,
+          arrivals: [
+            { time: "8:42 AM", countdown_min: 12, countdown_str: "12 min" },
+            { time: "9:14 AM", countdown_min: 44, countdown_str: "44 min" },
+          ],
+        },
+        amtrak: {
+          available: true,
+          northbound: [
+            { time: "9:30 AM", countdown_min: 60, countdown_str: "1 hr" },
+          ],
+          southbound: [],
+        },
+        weather_flip_hour: 17,
+        weather_end_hour: 21,
+      };
+    }
+
+    const __MOCK = buildMockData();
+    const __realFetch = window.fetch;
+    window.fetch = function (url, opts) {
+      if (typeof url === "string" && url.startsWith("/api/dashboard")) {
+        return Promise.resolve(new Response(JSON.stringify(__MOCK), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }));
+      }
+      return __realFetch ? __realFetch.call(window, url, opts)
+                         : Promise.reject(new Error("fetch unavailable"));
+    };
+  </script>
 </head>
 <body data-now-iso="2026-06-05T08:30:00-05:00">
   <main class="root">
