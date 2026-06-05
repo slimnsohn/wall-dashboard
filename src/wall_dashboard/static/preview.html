@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wall Dashboard — Preview</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body data-now-iso="2026-06-05T08:30:00-05:00">
+  <main class="root">
+    <header class="header">
+      <div class="left">
+        <div class="location-line">
+          <span class="location">NORTHBROOK</span>
+          <span class="now-temp" id="now-temp">--°</span>
+        </div>
+        <div class="weather-meta">
+          <span class="short" id="weather-short"></span>
+          <span class="feels" id="weather-feels"></span>
+        </div>
+        <div class="health-line">
+          <span class="badge aqi-badge" id="aqi-badge">AQI --</span>
+          <span class="badge uv-badge" id="uv-badge">UV --</span>
+        </div>
+      </div>
+      <div class="right">
+        <div class="date" id="date">—</div>
+        <div class="time" id="time">--:--</div>
+      </div>
+    </header>
+
+    <section class="section hourly-section" id="section-hourly">
+      <div class="section-label"><span id="hourly-label">HOURLY</span></div>
+      <div class="hourly" id="hourly"></div>
+      <div class="section-unavailable" id="hourly-unavailable" hidden>weather unavailable</div>
+    </section>
+
+    <div class="flex-spacer"></div>
+
+    <section class="section trains-section" id="section-trains">
+      <div class="section-label">
+        <span>NORTHBROOK TRAINS</span>
+        <span class="updated" id="updated">—</span>
+      </div>
+      <ul class="train-list" id="trains"></ul>
+      <div class="section-unavailable" id="trains-unavailable" hidden>trains unavailable</div>
+    </section>
+  </main>
+  <script src="dashboard.js" defer></script>
+</body>
+</html>
