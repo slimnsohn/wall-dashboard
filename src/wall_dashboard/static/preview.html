@@ -40,14 +40,21 @@
           hourKey,
           hour: d.getHours(),
           temp: 68 + Math.round(8 * Math.sin(i / 4)),
-          precip: (i === 3 || i === 4) ? 30 : 0,
+          precip: (i === 3 || i === 4) ? 45 : 0,
         });
       }
-      const uvHours = hours.map((h, i) => ({
-        hourKey: h.hourKey,
-        value: i === 6 ? 7 : 5,
-        level: i === 6 ? "high" : "moderate",
-      }));
+      // Vary UV across the day so the always-show hourly display has visible signal:
+      // low overnight/early, peaks midday. Decimals here exercise Math.round in dashboard.js.
+      const uvHours = hours.map((h, i) => {
+        const hr = h.hour;
+        let v;
+        if (hr < 7 || hr > 19) v = 0;
+        else if (hr < 9 || hr > 17) v = 1.4;
+        else if (hr < 11 || hr > 15) v = 4.2;
+        else v = 7.6;
+        const level = v >= 8 ? "very-high" : v >= 6 ? "high" : v >= 3 ? "moderate" : "low";
+        return { hourKey: h.hourKey, value: v, level };
+      });
       return {
         now_iso: now.toISOString(),
         weather: {
@@ -56,11 +63,13 @@
           hours,
         },
         uv: {
-          available: true, value: 5, category: "Moderate", level: "moderate",
+          // 5.6 → rounds to 6 in the hero, proves integer rounding works.
+          available: true, value: 5.6, category: "Moderate", level: "moderate",
           alert: false, hours: uvHours,
         },
         aqi: {
-          available: true, value: 42, category: "Good", level: "good",
+          // 42.4 → rounds to 42; bump to 42.6 to see it round up.
+          available: true, value: 42.4, category: "Good", level: "good",
           alert: false,
         },
         metra: {
@@ -100,9 +109,13 @@
   <main class="root">
     <header class="header">
       <div class="left">
+        <div class="snapshot-meta">
+          <span class="date" id="date">—</span>
+          <span class="time" id="time">--:--</span>
+        </div>
         <div class="location-line">
-          <span class="location">NORTHBROOK</span>
           <span class="now-temp" id="now-temp">--°</span>
+          <span class="now-uv" id="now-uv">UV --</span>
         </div>
         <div class="weather-meta">
           <span class="short" id="weather-short"></span>
@@ -110,12 +123,7 @@
         </div>
         <div class="health-line">
           <span class="badge aqi-badge" id="aqi-badge">AQI --</span>
-          <span class="badge uv-badge" id="uv-badge">UV --</span>
         </div>
-      </div>
-      <div class="right">
-        <div class="date" id="date">—</div>
-        <div class="time" id="time">--:--</div>
       </div>
     </header>
 

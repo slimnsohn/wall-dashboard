@@ -57,19 +57,22 @@ function renderWeather(w) {
   }
 }
 
-// Per-hour warning: rain wins over UV (rain matters more for "what to bring").
-// Both have visibility thresholds so the layout stays clean during mild hours.
-const PRECIP_THRESHOLD_PCT = 20;
-const UV_THRESHOLD = 4;  // EPA upper "Moderate" (4-5) and above
+// Per-hour extras. UV always shows on top; precip below it when above threshold.
+const PRECIP_THRESHOLD_PCT = 30;
 
-function hourlyWarning(h, uvEntry) {
+function hourlyExtras(h, uvEntry) {
+  const extras = [];
+  if (uvEntry && uvEntry.value != null) {
+    extras.push({
+      kind: "uv", icon: "☀",
+      value: `${Math.round(uvEntry.value)}`,
+      level: uvEntry.level || "low",
+    });
+  }
   if (h.precip != null && h.precip >= PRECIP_THRESHOLD_PCT) {
-    return { kind: "precip", icon: "☂", value: `${Math.round(h.precip)}%` };
+    extras.push({ kind: "precip", icon: "☂", value: `${Math.round(h.precip)}%` });
   }
-  if (uvEntry && uvEntry.value >= UV_THRESHOLD) {
-    return { kind: "uv", icon: "☀", value: `UV ${uvEntry.value}`, level: uvEntry.level };
-  }
-  return null;
+  return extras;
 }
 
 // "YYYY-MM-DD-H" (H is not zero-padded) -> Date at the start of that hour.
@@ -137,18 +140,17 @@ function renderHourly(w, uvData, flipHour, endHour) {
       cell.appendChild(label);
       cell.appendChild(temp);
 
-      const warn = hourlyWarning(h, uvByKey[h.hourKey]);
-      if (warn) {
-        const colorClass = warn.kind === "precip" ? "precip" : (warn.level || "");
+      hourlyExtras(h, uvByKey[h.hourKey]).forEach(ex => {
+        const colorClass = ex.kind === "precip" ? "precip" : (ex.level || "");
         const icon = document.createElement("div");
         icon.className = `wicon ${colorClass}`;
-        icon.textContent = warn.icon;
+        icon.textContent = ex.icon;
         const value = document.createElement("div");
         value.className = `wval ${colorClass}`;
-        value.textContent = warn.value;
+        value.textContent = ex.value;
         cell.appendChild(icon);
         cell.appendChild(value);
-      }
+      });
 
       host.appendChild(cell);
     });
@@ -158,7 +160,7 @@ function renderHourly(w, uvData, flipHour, endHour) {
 }
 
 function renderBadge(elId, kind, data) {
-  // kind: "AQI" or "UV". data: {available, value, category, level, alert}
+  // kind: "AQI". data: {available, value, category, level, alert}
   const el = document.getElementById(elId);
   if (!el) return;
   if (!data || !data.available) {
@@ -166,12 +168,13 @@ function renderBadge(elId, kind, data) {
     el.className = `badge ${elId}`;
     return;
   }
+  const value = Math.round(data.value);
   if (data.alert) {
-    el.textContent = `⚠ ${kind} ${data.value} · ${data.category || ""}`.trim();
+    el.textContent = `⚠ ${kind} ${value} · ${data.category || ""}`.trim();
     el.className = `badge ${elId} alert ${data.level || ""}`;
   } else {
-    const cat = data.category || (kind === "AQI" ? "Good" : "Low");
-    el.textContent = `${kind} ${data.value} · ${cat}`;
+    const cat = data.category || "Good";
+    el.textContent = `${kind} ${value} · ${cat}`;
     el.className = `badge ${elId} ${data.level || "good"}`;
   }
 }
@@ -181,9 +184,21 @@ function renderAqi(a) {
   catch (e) { console.error("renderAqi", e); }
 }
 
+// Hero-size current UV next to the temperature. Color tier set via level class.
 function renderUv(u) {
-  try { renderBadge("uv-badge", "UV", u); }
-  catch (e) { console.error("renderUv", e); }
+  try {
+    const el = document.getElementById("now-uv");
+    if (!el) return;
+    if (!u || !u.available || u.value == null) {
+      el.textContent = "UV --";
+      el.className = "now-uv";
+      return;
+    }
+    el.textContent = `UV ${Math.round(u.value)}`;
+    el.className = `now-uv ${u.level || "good"}`;
+  } catch (e) {
+    console.error("renderUv", e);
+  }
 }
 
 function mergeTrains(metra, amtrak, now) {
