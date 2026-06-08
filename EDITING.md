@@ -77,7 +77,8 @@ that bakes the static files in.
   },
   aqi:    { available, value, category, level, alert },
   metra:  { available, arrivals: [{ time, countdown_min, countdown_str }] },
-  amtrak: { available, northbound: [...], southbound: [...] }   // same arrival shape
+  amtrak: { available, northbound: [...], southbound: [...] },  // same arrival shape
+  astro:  { available, sunsets_iso: [today_iso, tomorrow_iso] } // gates UV display past sunset
 }
 ```
 

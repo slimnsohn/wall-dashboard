@@ -40,32 +40,45 @@ html, body {
 
 .header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: flex-start;
   gap: clamp(16px, 3vw, 32px);
 }
 
-.left { display: flex; flex-direction: column; gap: clamp(2px, 0.6vh, 6px); }
+/* Snapshot block: at-a-glance summary, anchored to the top-right of the header.
+   Hero (temp + UV) on top, weather meta and AQI underneath, time + date last. */
+.snapshot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: clamp(2px, 0.6vh, 6px);
+  text-align: right;
+}
 
 .location-line {
   display: flex;
+  justify-content: flex-end;
   align-items: baseline;
   gap: clamp(28px, 4.5vw, 56px);
 }
 
-/* At-a-glance date + time on top of the snapshot. Small relative to the hero. */
+/* Time above date, both right-aligned. Date is dimmer + smaller (lowest priority). */
 .snapshot-meta {
   display: flex;
-  gap: clamp(10px, 1.8vw, 22px);
-  align-items: baseline;
-  color: var(--fg-dim);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: clamp(0px, 0.2vh, 3px);
   font-variant-numeric: tabular-nums;
-  margin-bottom: clamp(2px, 0.6vh, 8px);
+  margin-top: clamp(6px, 1.4vh, 14px);
+  line-height: 1.1;
 }
-.snapshot-meta .date { font-size: clamp(16px, 2.8vh, 30px); }
 .snapshot-meta .time {
   font-size: clamp(18px, 3vh, 34px);
   color: var(--fg);
+}
+.snapshot-meta .date {
+  font-size: clamp(12px, 2vh, 22px);
+  color: var(--fg-faint);
 }
 
 .now-temp {
@@ -93,6 +106,7 @@ html, body {
 
 .weather-meta {
   display: flex;
+  justify-content: flex-end;
   gap: clamp(10px, 1.8vw, 20px);
   align-items: baseline;
   margin-top: clamp(2px, 0.4vh, 6px);
@@ -104,6 +118,7 @@ html, body {
 .health-line {
   margin-top: clamp(6px, 1.4vh, 14px);
   display: flex;
+  justify-content: flex-end;
   gap: clamp(8px, 1.4vw, 16px);
   align-items: center;
   flex-wrap: wrap;

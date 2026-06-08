@@ -57,12 +57,12 @@ function renderWeather(w) {
   }
 }
 
-// Per-hour extras. UV always shows on top; precip below it when above threshold.
+// Per-hour extras. UV shows on top during daylight; precip below it when above threshold.
 const PRECIP_THRESHOLD_PCT = 30;
 
-function hourlyExtras(h, uvEntry) {
+function hourlyExtras(h, uvEntry, afterSunset) {
   const extras = [];
-  if (uvEntry && uvEntry.value != null) {
+  if (uvEntry && uvEntry.value != null && !afterSunset) {
     extras.push({
       kind: "uv", icon: "☀",
       value: `${Math.round(uvEntry.value)}`,
@@ -75,6 +75,22 @@ function hourlyExtras(h, uvEntry) {
   return extras;
 }
 
+// Build a date-keyed lookup of sunset Date objects from astro.sunsets_iso.
+// Key format matches parseHourKey's date portion: "YYYY-M-D" (unpadded).
+function buildSunsetByDate(astroData) {
+  const out = {};
+  if (!astroData || !astroData.available) return out;
+  const sunsets = astroData.sunsets_iso;
+  if (!Array.isArray(sunsets)) return out;
+  sunsets.forEach(iso => {
+    if (!iso) return;
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return;
+    out[`${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`] = d;
+  });
+  return out;
+}
+
 // "YYYY-MM-DD-H" (H is not zero-padded) -> Date at the start of that hour.
 function parseHourKey(key) {
   const parts = (key || "").split("-");
@@ -83,7 +99,7 @@ function parseHourKey(key) {
                   parseInt(parts[2]), parseInt(parts[3]));
 }
 
-function renderHourly(w, uvData, flipHour, endHour) {
+function renderHourly(w, uvData, flipHour, endHour, astroData) {
   try {
     const host = document.getElementById("hourly");
     if (!host) return;
@@ -126,6 +142,7 @@ function renderHourly(w, uvData, flipHour, endHour) {
     if (uvData && uvData.available && Array.isArray(uvData.hours)) {
       uvData.hours.forEach(u => { uvByKey[u.hourKey] = u; });
     }
+    const sunsetByDate = buildSunsetByDate(astroData);
 
     while (host.firstChild) host.removeChild(host.firstChild);
     hours.forEach(h => {
@@ -140,7 +157,14 @@ function renderHourly(w, uvData, flipHour, endHour) {
       cell.appendChild(label);
       cell.appendChild(temp);
 
-      hourlyExtras(h, uvByKey[h.hourKey]).forEach(ex => {
+      const cellDate = parseHourKey(h.hourKey);
+      const dayKey = cellDate
+        ? `${cellDate.getFullYear()}-${cellDate.getMonth() + 1}-${cellDate.getDate()}`
+        : null;
+      const cellSunset = dayKey ? sunsetByDate[dayKey] : null;
+      const afterSunset = cellSunset && cellDate && cellDate >= cellSunset;
+
+      hourlyExtras(h, uvByKey[h.hourKey], afterSunset).forEach(ex => {
         const colorClass = ex.kind === "precip" ? "precip" : (ex.level || "");
         const icon = document.createElement("div");
         icon.className = `wicon ${colorClass}`;
@@ -185,15 +209,23 @@ function renderAqi(a) {
 }
 
 // Hero-size current UV next to the temperature. Color tier set via level class.
-function renderUv(u) {
+// Hidden entirely after today's official sunset (so the temp sits alone at night).
+function renderUv(u, astroData) {
   try {
     const el = document.getElementById("now-uv");
     if (!el) return;
-    if (!u || !u.available || u.value == null) {
-      el.textContent = "UV --";
+    const sunsetByDate = buildSunsetByDate(astroData);
+    const now = new Date();
+    const todayKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+    const todaySunset = sunsetByDate[todayKey];
+    const afterSunset = todaySunset && now >= todaySunset;
+    if (!u || !u.available || u.value == null || afterSunset) {
+      el.textContent = "";
       el.className = "now-uv";
+      el.hidden = true;
       return;
     }
+    el.hidden = false;
     el.textContent = `UV ${Math.round(u.value)}`;
     el.className = `now-uv ${u.level || "good"}`;
   } catch (e) {
@@ -278,9 +310,9 @@ async function refresh() {
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const d = await r.json();
     renderWeather(d.weather);
-    renderHourly(d.weather, d.uv, d.weather_flip_hour, d.weather_end_hour);
+    renderHourly(d.weather, d.uv, d.weather_flip_hour, d.weather_end_hour, d.astro);
     renderAqi(d.aqi);
-    renderUv(d.uv);
+    renderUv(d.uv, d.astro);
     renderTrains(d.metra, d.amtrak, d.now_iso);
     renderUpdated(d.now_iso);
   } catch (e) {

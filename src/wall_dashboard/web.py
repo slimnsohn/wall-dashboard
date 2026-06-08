@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import amtrak, aqi, metra, uv, weather
+from . import amtrak, aqi, astro, metra, uv, weather
 from .client import close_http_client
 from .config import get_settings
 from .scheduler import scheduler_lifespan
@@ -64,11 +64,12 @@ def build_app() -> FastAPI:
     @app.get("/api/dashboard")
     async def api_dashboard():
         s = get_settings()
-        m, w, a, u = await asyncio.gather(
+        m, w, a, u, ast = await asyncio.gather(
             _safe_async(metra.get_metra(s.northbrook_stop_id), "metra"),
             _safe_async(weather.get_weather(), "weather"),
             _safe_async(aqi.get_aqi(), "aqi"),
             _safe_async(uv.get_uv(), "uv"),
+            _safe_async(astro.get_astro(), "astro"),
         )
         am = _safe_sync(amtrak.get_amtrak, _data_dir(), label="amtrak")
         now = datetime.now(CHICAGO)
@@ -79,6 +80,7 @@ def build_app() -> FastAPI:
             "weather": w,
             "aqi": a,
             "uv": u,
+            "astro": ast,
             "weather_flip_hour": s.weather_flip_hour,
             "weather_end_hour": s.weather_end_hour,
         }
