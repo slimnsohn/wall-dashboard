@@ -19,9 +19,32 @@ JS in `src/wall_dashboard/static/` and `src/wall_dashboard/templates/`.
 4. To see the post-5pm "TOMORROW" view, add `#tomorrow` to the URL.
 5. When it looks right, commit, `git push`, then deploy.
 
-No backend server needed for the preview — it mocks `/api/dashboard` in the
-browser via a `window.fetch` override (see the `<script>` block at the top of
-`preview.html`).
+By default the preview mocks `/api/dashboard` in the browser via a
+`window.fetch` override — no backend server needed.
+
+### Live data in the preview
+
+To preview local CSS/HTML/JS changes against **real backend data** from the
+running add-on, add `#live=<green-url>` to the hash:
+
+```
+file:///.../preview.html#live=http://homeassistant.local:8765
+file:///.../preview.html#live=http://192.168.1.50:8765
+```
+
+The preview fetches `/api/*` from that base instead of using the mock.
+Bookmark the URL once with your Green's host — no file edits needed.
+
+Compose with `#tomorrow` to test the post-5pm view against live data:
+
+```
+file:///.../preview.html#live=http://homeassistant.local:8765&tomorrow
+```
+
+Live mode needs CORS on the backend, which is enabled by default (read-only
+GET endpoints, LAN-only port). If the fetch fails silently, check the
+browser console — it will log `[preview] live mode → ...` and surface CORS
+or network errors.
 
 ## Where to edit what
 

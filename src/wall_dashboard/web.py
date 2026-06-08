@@ -10,6 +10,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -41,6 +42,15 @@ def build_app() -> FastAPI:
                 await close_http_client()
 
     app = FastAPI(title="Wall Dashboard", lifespan=lifespan)
+    # Permissive CORS so local preview.html (file://, origin "null") can fetch
+    # /api/* against the running add-on. Endpoints are read-only public data;
+    # backend only listens on the LAN.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["GET"],
+        allow_headers=["*"],
+    )
     app.mount("/static", StaticFiles(directory=str(pkg_root / "static")), name="static")
 
     @app.get("/healthz")

@@ -6,10 +6,19 @@
   <title>Wall Dashboard — Preview</title>
   <link rel="stylesheet" href="dashboard.css">
   <script>
-    // Opt-in: preview.html#tomorrow forces "now" to 6pm so dashboard.js
-    // enters TOMORROW view-mode. The clock visibly shows 6:00 PM as a
-    // signal that the override is active.
-    if (location.hash === "#tomorrow") {
+    // Hash flags (compose with &):
+    //   #tomorrow                              → shift "now" to 6pm
+    //   #live=http://homeassistant.local:8765  → fetch /api/* from that base
+    //                                            (requires CORS on the backend)
+    //   #live=...&tomorrow                     → both
+    const __hash = location.hash.slice(1);
+    const __isTomorrow = /\btomorrow\b/.test(__hash);
+    const __liveMatch = __hash.match(/(?:^|&)live=([^&]+)/);
+    const __liveBase = __liveMatch
+      ? decodeURIComponent(__liveMatch[1]).replace(/\/+$/, "")
+      : null;
+
+    if (__isTomorrow) {
       const __RealDate = Date;
       const __fake = new __RealDate();
       __fake.setHours(18, 0, 0, 0);
@@ -102,18 +111,31 @@
       };
     }
 
-    const __MOCK = buildMockData();
     const __realFetch = window.fetch;
-    window.fetch = function (url, opts) {
-      if (typeof url === "string" && url.startsWith("/api/dashboard")) {
-        return Promise.resolve(new Response(JSON.stringify(__MOCK), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        }));
-      }
-      return __realFetch ? __realFetch.call(window, url, opts)
-                         : Promise.reject(new Error("fetch unavailable"));
-    };
+    if (__liveBase) {
+      // Live mode: proxy any /api/* call to the configured Green base URL.
+      // Mock data is skipped entirely so the dashboard renders real backend data.
+      window.fetch = function (url, opts) {
+        if (typeof url === "string" && url.startsWith("/api/")) {
+          return __realFetch.call(window, __liveBase + url, opts);
+        }
+        return __realFetch.call(window, url, opts);
+      };
+      console.info(`[preview] live mode → ${__liveBase}`);
+    } else {
+      // Mock mode (default): intercept /api/dashboard with buildMockData().
+      const __MOCK = buildMockData();
+      window.fetch = function (url, opts) {
+        if (typeof url === "string" && url.startsWith("/api/dashboard")) {
+          return Promise.resolve(new Response(JSON.stringify(__MOCK), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }));
+        }
+        return __realFetch ? __realFetch.call(window, url, opts)
+                           : Promise.reject(new Error("fetch unavailable"));
+      };
+    }
   </script>
 </head>
 <body data-now-iso="2026-06-05T08:30:00-05:00">
